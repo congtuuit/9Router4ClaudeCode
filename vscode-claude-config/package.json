@@ -1,0 +1,117 @@
+{
+  "name": "vscode-claude-config",
+  "displayName": "Claude Code Config Manager",
+  "description": "Manage and switch Claude Code configuration profiles (9Router support).",
+  "version": "0.1.0",
+  "publisher": "local",
+  "engines": { "vscode": "^1.85.0" },
+  "categories": ["Other"],
+  "keywords": ["claude", "claude code", "9router", "proxy", "gemini"],
+  "license": "MIT",
+  "repository": { "type": "git", "url": "https://example.com/vscode-claude-config.git" },
+  "main": "./dist/extension.js",
+  "activationEvents": ["onStartupFinished"],
+  "contributes": {
+    "commands": [
+      { "command": "claudeConfig.switchProfile", "title": "Claude Config: Switch Profile" },
+      { "command": "claudeConfig.openConfig", "title": "Claude Config: Open Settings Screen" },
+      { "command": "claudeConfig.enable", "title": "Claude Config: Enable Custom Config" },
+      { "command": "claudeConfig.disable", "title": "Claude Config: Disable & Restore Original" },
+      { "command": "claudeConfig.setApiKey", "title": "Claude Config: Set API Key" },
+      { "command": "claudeConfig.addProfile", "title": "Claude Config: Add Profile" },
+      { "command": "claudeConfig.deleteProfile", "title": "Claude Config: Delete Profile" },
+      { "command": "claudeConfig.selectModel", "title": "Claude Config: Select Model (from API)" },
+      { "command": "claudeConfig.testConnection", "title": "Claude Config: Test Connection" },
+      { "command": "claudeConfig.openSettings", "title": "Claude Config: Open settings.json" },
+      { "command": "claudeConfig.restoreBackup", "title": "Claude Config: Restore Latest Backup" }
+    ],
+    "configuration": {
+      "title": "Claude Config",
+      "properties": {
+        "claudeConfig.scope": {
+          "type": "string",
+          "enum": ["global", "workspace"],
+          "default": "global",
+          "description": "Where the active profile is written."
+        },
+        "claudeConfig.restoreOnDeactivate": {
+          "type": "boolean",
+          "default": false,
+          "description": "Restore original settings whenever the extension deactivates (also happens on window reload/close)."
+        },
+        "claudeConfig.refreshMinutes": {
+          "type": "number", "default": 10, "minimum": 1,
+          "description": "How often (minutes) to re-fetch the model list from the endpoint. Takes effect after reload."
+        },
+        "claudeConfig.autoApply": {
+          "type": "boolean",
+          "default": true,
+          "description": "Automatically write changes made below to Claude Code's settings.json (only while the custom config is enabled)."
+        },
+        "claudeConfig.override.baseUrl": {
+          "type": "string", "default": "http://localhost:20128", "order": 1,
+          "markdownDescription": "Override `ANTHROPIC_BASE_URL` (no `/v1` suffix). Empty = use the active profile. API keys are not stored here: [Set API key (OS keychain)](command:claudeConfig.setApiKey)"
+        },
+        "claudeConfig.override.model": {
+          "type": "string", "default": "ag/gemini-3.7-flash-medium", "order": 3,
+          "markdownDescription": "Override `model` / `ANTHROPIC_MODEL`. [Pick from the models fetched from your endpoint](command:claudeConfig.selectModel)"
+        },
+        "claudeConfig.override.effortLevel": {
+          "type": "string", "default": "high", "order": 4,
+          "enum": ["", "low", "medium", "high"],
+          "enumDescriptions": ["Use profile value", "Low", "Medium", "High"],
+          "description": "Override effortLevel."
+        },
+        "claudeConfig.override.permissionMode": {
+          "type": "string", "default": "bypassPermissions", "order": 5,
+          "enum": ["", "default", "acceptEdits", "plan", "bypassPermissions"],
+          "enumDescriptions": ["Use profile value", "Ask before edits/commands", "Auto-accept file edits", "Plan mode (read-only)", "Skip all permission prompts"],
+          "description": "Override permissions.defaultMode."
+        },
+        "claudeConfig.override.allow": {
+          "type": "array", "items": { "type": "string" }, "default": ["*"], "order": 6,
+          "markdownDescription": "Override `permissions.allow`, e.g. `*` or `Bash`. Empty = use profile."
+        },
+        "claudeConfig.override.additionalDirectories": {
+          "type": "array", "items": { "type": "string" }, "default": [], "order": 7,
+          "markdownDescription": "Set `permissions.additionalDirectories`."
+        },
+        "claudeConfig.override.skipDangerousModePermissionPrompt": {
+          "type": "string", "default": "true", "order": 8,
+          "enum": ["unset", "true", "false"],
+          "description": "Set skipDangerousModePermissionPrompt (unset = use profile)."
+        },
+        "claudeConfig.override.theme": {
+          "type": "string", "default": "", "order": 9,
+          "description": "Set Claude Code theme, e.g. dark-ansi or light-ansi."
+        },
+        "claudeConfig.override.autoUpdatesChannel": {
+          "type": "string", "default": "", "order": 10,
+          "enum": ["", "latest", "stable"],
+          "description": "Set autoUpdatesChannel."
+        },
+        "claudeConfig.override.extraEnv": {
+          "type": "object", "default": {}, "order": 11,
+          "additionalProperties": { "type": "string" },
+          "markdownDescription": "Extra entries for the `env` block, e.g. `{ \"API_TIMEOUT_MS\": \"600000\" }`."
+        },
+        "claudeConfig.override.extraSettings": {
+          "type": "object", "default": {}, "order": 12,
+          "markdownDescription": "Any other top-level keys to merge into `settings.json` (e.g. `hooks`, `mcpServers`). `env` and `permissions` are merged key by key."
+        }
+      }
+    }
+  },
+  "scripts": {
+    "vscode:uninstall": "node ./dist/uninstall.js",
+    "build": "node esbuild.js",
+    "watch": "node esbuild.js --watch",
+    "package": "vsce package"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "@types/vscode": "^1.85.0",
+    "esbuild": "^0.21.0",
+    "typescript": "^5.4.0"
+  }
+}
