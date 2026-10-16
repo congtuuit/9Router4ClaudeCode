@@ -1,5 +1,5 @@
 import * as vscode from 'vscode';
-import { DEFAULT_PROFILES } from '../constants';
+import { DEFAULT_PROFILES, detectLocalAnthropicProfile } from '../constants';
 import { ClaudeSettings, Profile } from '../types';
 
 const KEY = 'claudeConfig.profiles';
@@ -20,7 +20,11 @@ export class ProfileStorage {
   /** Load keys from SecretStorage and migrate any plain-text keys left in global state. */
   async init(): Promise<void> {
     const raw = this.ctx.globalState.get<Profile[]>(KEY) ?? DEFAULT_PROFILES;
+    const detectedAnthropic = detectLocalAnthropicProfile();
     for (const p of raw) {
+      if (p.id === 'anthropic' && p.model === 'claude-sonnet-4-5') {
+        p.model = detectedAnthropic.model;
+      }
       if (p.apiKey) { await this.setKey(p.id, p.apiKey); }
     }
     for (const id of [...raw.map(p => p.id), OVERRIDE_KEY_ID]) {

@@ -34,7 +34,7 @@ __export(extension_exports, {
   deactivate: () => deactivate
 });
 module.exports = __toCommonJS(extension_exports);
-var path4 = __toESM(require("path"));
+var path5 = __toESM(require("path"));
 var vscode2 = __toESM(require("vscode"));
 
 // src/services/configManager.ts
@@ -47,7 +47,7 @@ function mergeSettings(base, over) {
   return out;
 }
 function profileOverlay(p) {
-  const env = { ANTHROPIC_BASE_URL: p.baseUrl };
+  const env = p.baseUrl ? { ANTHROPIC_BASE_URL: p.baseUrl } : {};
   if (p.apiKey) {
     env.ANTHROPIC_AUTH_TOKEN = p.apiKey;
     env.ANTHROPIC_API_KEY = p.apiKey;
@@ -305,7 +305,7 @@ function restoreLatest(file) {
 
 // src/services/healthChecker.ts
 async function testConnection(p) {
-  const base = p.baseUrl.replace(/\/+$/, "").replace(/\/v1$/, "");
+  const base = (p.baseUrl || "https://api.anthropic.com").replace(/\/+$/, "").replace(/\/v1$/, "");
   const url = `${base}/v1/models`;
   try {
     const res = await fetch(url, {
@@ -324,27 +324,64 @@ async function testConnection(p) {
 }
 
 // src/constants.ts
+var fs3 = __toESM(require("fs"));
+var os2 = __toESM(require("os"));
+var path3 = __toESM(require("path"));
+function readJsonSafe(file) {
+  try {
+    if (fs3.existsSync(file)) {
+      const text = fs3.readFileSync(file, "utf8");
+      if (text.trim()) {
+        return JSON.parse(text);
+      }
+    }
+  } catch {
+  }
+  return void 0;
+}
+function detectLocalAnthropicProfile() {
+  const home = os2.homedir();
+  const claudeDir = path3.join(home, ".claude");
+  const snapFile = path3.join(claudeDir, "settings.claude.json");
+  const liveFile = path3.join(claudeDir, "settings.json");
+  const settings = readJsonSafe(snapFile) ?? readJsonSafe(liveFile) ?? {};
+  const env = settings.env ?? {};
+  let baseUrl = env.ANTHROPIC_BASE_URL || process.env.ANTHROPIC_BASE_URL || "";
+  if (!baseUrl || baseUrl.includes("localhost:20128") || baseUrl.includes("9router")) {
+    baseUrl = "https://api.anthropic.com";
+  }
+  let apiKey = env.ANTHROPIC_API_KEY || env.ANTHROPIC_AUTH_TOKEN || process.env.ANTHROPIC_API_KEY || process.env.ANTHROPIC_AUTH_TOKEN || "";
+  if (apiKey === "sk-9router") {
+    apiKey = "";
+  }
+  let model = settings.model || env.ANTHROPIC_MODEL || process.env.ANTHROPIC_MODEL || "";
+  if (model === "ag/gemini-3.7-flash-medium") {
+    model = "";
+  }
+  const permissionMode = settings.permissions?.defaultMode || "default";
+  return {
+    id: "anthropic",
+    name: "Anthropic Official",
+    baseUrl,
+    apiKey,
+    model,
+    permissionMode
+  };
+}
 var DEFAULT_PROFILES = [
   {
-    id: "9router-gemini",
-    name: "9Router Gemini",
+    id: "9router",
+    name: "9Router",
     // Claude Code appends /v1/messages itself, so no /v1 suffix here.
     baseUrl: "http://localhost:20128",
     apiKey: "sk-9router",
-    model: "ag/gemini-3.7-flash-medium",
+    model: "",
     effortLevel: "high",
     permissionMode: "bypassPermissions",
     allow: ["*"],
     skipDangerousModePermissionPrompt: true
   },
-  {
-    id: "anthropic",
-    name: "Anthropic Official",
-    baseUrl: "https://api.anthropic.com",
-    apiKey: "",
-    model: "claude-sonnet-4-5",
-    permissionMode: "default"
-  }
+  detectLocalAnthropicProfile()
 ];
 
 // src/services/profileStorage.ts
@@ -360,7 +397,11 @@ var ProfileStorage = class {
   /** Load keys from SecretStorage and migrate any plain-text keys left in global state. */
   async init() {
     const raw = this.ctx.globalState.get(KEY) ?? DEFAULT_PROFILES;
+    const detectedAnthropic = detectLocalAnthropicProfile();
     for (const p of raw) {
+      if (p.id === "anthropic" && p.model === "claude-sonnet-4-5") {
+        p.model = detectedAnthropic.model;
+      }
       if (p.apiKey) {
         await this.setKey(p.id, p.apiKey);
       }
@@ -415,15 +456,15 @@ var ProfileStorage = class {
 };
 
 // src/utils/pathHelper.ts
-var os2 = __toESM(require("os"));
-var path3 = __toESM(require("path"));
+var os3 = __toESM(require("os"));
+var path4 = __toESM(require("path"));
 var vscode = __toESM(require("vscode"));
 function settingsPath(scope) {
   if (scope === "global") {
-    return path3.join(os2.homedir(), ".claude", "settings.json");
+    return path4.join(os3.homedir(), ".claude", "settings.json");
   }
   const folder = vscode.workspace.workspaceFolders?.[0];
-  return folder ? path3.join(folder.uri.fsPath, ".claude", "settings.json") : void 0;
+  return folder ? path4.join(folder.uri.fsPath, ".claude", "settings.json") : void 0;
 }
 
 // src/extension.ts
@@ -435,7 +476,7 @@ async function activate(ctx) {
   bar.command = "claudeConfig.switchProfile";
   const refresh = () => {
     const file = settingsPath(vscode2.workspace.getConfiguration("claudeConfig").get("scope", "global"));
-    const on = !!file && isEnabled(path4.dirname(file));
+    const on = !!file && isEnabled(path5.dirname(file));
     bar.text = on ? `$(plug) Claude: ${store.active()?.name ?? "custom"}` : "$(circle-slash) Claude: default";
     bar.show();
   };
@@ -476,7 +517,7 @@ async function activate(ctx) {
   };
   const rebuild = (file, p) => {
     backup(file);
-    enable(path4.dirname(file), composeOverlay(p, store.patch(), readOverrides()));
+    enable(path5.dirname(file), composeOverlay(p, store.patch(), readOverrides()));
     refresh();
   };
   const cacheKey = "claudeConfig.models";
@@ -568,7 +609,7 @@ async function activate(ctx) {
     }
     const file = settingsPath(scope());
     const p = store.active();
-    if (!file || !p || !isEnabled(path4.dirname(file))) {
+    if (!file || !p || !isEnabled(path5.dirname(file))) {
       return;
     }
     try {
@@ -611,7 +652,7 @@ async function activate(ctx) {
         return;
       }
       try {
-        const done = disable(path4.dirname(file));
+        const done = disable(path5.dirname(file));
         refresh();
         vscode2.window.showInformationMessage(done ? "Original Claude Code settings restored. Restart Claude Code sessions. If ANTHROPIC_BASE_URL is set in your OS environment it will still apply." : "Extension config was not active; nothing to restore.");
       } catch (e) {
@@ -660,7 +701,7 @@ async function activate(ctx) {
       }
       const file = settingsPath(scope());
       const p = store.active();
-      if (file && p && isEnabled(path4.dirname(file))) {
+      if (file && p && isEnabled(path5.dirname(file))) {
         rebuild(file, p);
       }
       autoRefresh();
@@ -676,8 +717,8 @@ async function activate(ctx) {
         return;
       }
       const apiKey = await vscode2.window.showInputBox({ prompt: "API key", password: true }) ?? "";
-      const model = await vscode2.window.showInputBox({ prompt: "Model", value: "ag/gemini-3.7-flash-medium" });
-      if (!model) {
+      const model = await vscode2.window.showInputBox({ prompt: "Model (leave blank to select later)" });
+      if (model === void 0) {
         return;
       }
       const profile = { id: `${Date.now()}`, name, baseUrl, apiKey: "", model, permissionMode: "default" };

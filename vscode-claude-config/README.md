@@ -1,4 +1,4 @@
-# Claude Code Config Manager
+# 9Router4ClaudeCode
 
 Switch Claude Code between Anthropic and a custom endpoint such as **9Router**
 (`http://localhost:20128`), pick models fetched from the API, and tweak
@@ -7,7 +7,7 @@ settings are snapshotted and can always be restored.
 
 ## Quick start
 
-1. Run **Claude Config: Switch Profile** (`Ctrl+Shift+P`) and pick `9Router Gemini`.
+1. Run **Claude Config: Switch Profile** (`Ctrl+Shift+P`) and pick `9Router`.
 2. Run **Claude Config: Set API Key** if your router needs a key other than the default.
 3. Run **Claude Config: Select Model (from API)** to choose a model.
 4. Restart your Claude Code session.
@@ -72,7 +72,7 @@ Optional: set `claudeConfig.restoreOnDeactivate` to restore on every deactivatio
 - Claude Code itself reads the key from `settings.json`, so it is written there
   (and into `settings.9router.json`) in your home directory. Treat those files as secrets
   and do not commit `.claude/` folders from workspaces.
-- The default `9Router Gemini` profile uses `bypassPermissions` and `allow: ["*"]`,
+- The default `9Router` profile uses `bypassPermissions` and `allow: ["*"]`,
   which lets Claude Code run commands without asking. Change `permissionMode` to
   `default` on shared or sensitive machines.
 
@@ -82,7 +82,7 @@ Optional: set `claudeConfig.restoreOnDeactivate` to restore on every deactivatio
 npm install
 npm run build
 npx @vscode/vsce package
-code --install-extension vscode-claude-config-0.1.0.vsix
+code --install-extension 9router4claudecode-0.1.0.vsix
 ```
 
 For development, open the folder and press **F5**.

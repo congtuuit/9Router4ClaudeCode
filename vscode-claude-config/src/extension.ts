@@ -207,8 +207,8 @@ export async function activate(ctx: vscode.ExtensionContext) {
       const baseUrl = await vscode.window.showInputBox({ prompt: 'Base URL (no /v1)', value: 'http://localhost:20128' });
       if (!baseUrl) { return; }
       const apiKey = await vscode.window.showInputBox({ prompt: 'API key', password: true }) ?? '';
-      const model = await vscode.window.showInputBox({ prompt: 'Model', value: 'ag/gemini-3.7-flash-medium' });
-      if (!model) { return; }
+      const model = await vscode.window.showInputBox({ prompt: 'Model (leave blank to select later)' });
+      if (model === undefined) { return; }
       const profile: Profile = { id: `${Date.now()}`, name, baseUrl, apiKey: '', model, permissionMode: 'default' };
       await store.setKey(profile.id, apiKey);
       await store.save([...store.list(), profile]);

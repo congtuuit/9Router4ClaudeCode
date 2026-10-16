@@ -1,7 +1,7 @@
 import { Profile } from '../types';
 
 export async function testConnection(p: Profile): Promise<{ ok: boolean; message: string; models: string[] }> {
-  const base = p.baseUrl.replace(/\/+$/, '').replace(/\/v1$/, '');
+  const base = (p.baseUrl || 'https://api.anthropic.com').replace(/\/+$/, '').replace(/\/v1$/, '');
   const url = `${base}/v1/models`;
   try {
     const res = await fetch(url, {

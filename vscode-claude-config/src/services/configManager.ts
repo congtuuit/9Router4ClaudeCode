@@ -31,7 +31,7 @@ export function mergeSettings(base: ClaudeSettings, over: ClaudeSettings): Claud
 }
 
 export function profileOverlay(p: Profile): ClaudeSettings {
-  const env: Record<string, string> = { ANTHROPIC_BASE_URL: p.baseUrl };
+  const env: Record<string, string> = p.baseUrl ? { ANTHROPIC_BASE_URL: p.baseUrl } : {};
   if (p.apiKey) {
     env.ANTHROPIC_AUTH_TOKEN = p.apiKey;
     env.ANTHROPIC_API_KEY = p.apiKey;

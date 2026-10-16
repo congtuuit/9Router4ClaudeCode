@@ -1,6 +1,6 @@
 {
-  "name": "vscode-claude-config",
-  "displayName": "Claude Code Config Manager",
+  "name": "9router4claudecode",
+  "displayName": "9Router4ClaudeCode",
   "description": "Manage and switch Claude Code configuration profiles (9Router support).",
   "version": "0.1.0",
   "publisher": "local",
@@ -8,7 +8,7 @@
   "categories": ["Other"],
   "keywords": ["claude", "claude code", "9router", "proxy", "gemini"],
   "license": "MIT",
-  "repository": { "type": "git", "url": "https://example.com/vscode-claude-config.git" },
+  "repository": { "type": "git", "url": "https://example.com/9router4claudecode.git" },
   "main": "./dist/extension.js",
   "activationEvents": ["onStartupFinished"],
   "contributes": {
@@ -53,7 +53,7 @@
           "markdownDescription": "Override `ANTHROPIC_BASE_URL` (no `/v1` suffix). Empty = use the active profile. API keys are not stored here: [Set API key (OS keychain)](command:claudeConfig.setApiKey)"
         },
         "claudeConfig.override.model": {
-          "type": "string", "default": "ag/gemini-3.7-flash-medium", "order": 3,
+          "type": "string", "default": "", "order": 3,
           "markdownDescription": "Override `model` / `ANTHROPIC_MODEL`. [Pick from the models fetched from your endpoint](command:claudeConfig.selectModel)"
         },
         "claudeConfig.override.effortLevel": {
